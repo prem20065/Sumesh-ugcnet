@@ -1,11 +1,11 @@
 import { nextId, type Question } from "../state";
 
 /* ---------- line cleanup ---------- */
-const SHY = /­/g;
-const LIG_FI = /ﬁ/g;
-const LIG_FL = /ﬂ/g;
-const NBSP = / /g;
-const HINDI = /[ऀ-ॿ‌‍]+/g;
+const SHY = /\u00AD/g;
+const LIG_FI = /\uFB01/g;
+const LIG_FL = /\uFB02/g;
+const NBSP = /\u00A0/g;
+const HINDI = /[\u0900-\u097F\u200C\u200D]+/g;
 
 export function prepLines(text: string, noHindi: boolean): string[] {
   return text
