@@ -6,6 +6,9 @@ import { hooks, show } from "./ui/nav";
 import { fitAll, initEditor, loadSaved, renderEditor } from "./ui/editor";
 import { initStep1 } from "./ui/step1";
 import { initExam, startMock } from "./ui/exam";
+import { startGate } from "./auth/ui";
+
+startGate();
 
 hooks.onEditorShown = fitAll;
 

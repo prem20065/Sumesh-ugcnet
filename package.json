@@ -13,6 +13,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "firebase": "^11.10.0",
     "pdfjs-dist": "4.4.168"
   },
   "devDependencies": {

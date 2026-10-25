@@ -40,6 +40,10 @@ tests/               Vitest specs for parsing and layout
 .github/workflows/   deploy.yml (GitHub Pages)
 ```
 
+## Selling access
+
+Sign-in with one active device per account is built in. See [docs/ACCESS.md](docs/ACCESS.md) for the one-time Firebase setup and how to add or remove buyers.
+
 ## Deploy (GitHub Pages)
 
 Pushing to `main` runs `.github/workflows/deploy.yml`, which tests, builds and publishes `dist/`.

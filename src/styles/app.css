@@ -470,6 +470,32 @@ select {
   white-space: pre-wrap;
   margin: 0 0 8px;
 }
+/* Sign-in gate: while locked, only the gate is visible. The app keeps its state underneath. */
+body.locked #bar,
+body.locked main,
+body.locked #exambar,
+body.locked #modal {
+  display: none !important;
+}
+.gate {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 16px;
+}
+.gate .card {
+  max-width: 440px;
+  width: 100%;
+}
+.gate h1 {
+  margin-top: 0;
+}
+.who {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 /* Questions that are pictures (white pages, so keep a light backing in dark mode) */
 .qimg {
   display: block;

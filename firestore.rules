@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Who can use the app, and which single device holds the session.
+//   allowed/{email}  — one document per buyer; the owner creates and deletes these in the
+//                      Firebase console. Document ID = the buyer's Google email, lower case.
+//   sessions/{uid}   — written by the app when a device signs in; the other devices watch it.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true;
+    }
+
+    function isBuyer() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/allowed/$(request.auth.token.email.lower()));
+    }
+
+    // A person can only check whether their own email is on the list. Nobody can edit the list from the app.
+    match /allowed/{email} {
+      allow get: if signedIn() && request.auth.token.email.lower() == email;
+      allow list, write: if false;
+    }
+
+    // Buyers can only touch their own session document.
+    match /sessions/{uid} {
+      allow get: if isBuyer() && request.auth.uid == uid;
+      allow create, update: if isBuyer()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['sid', 'email', 'startedAt'])
+        && request.resource.data.sid is string
+        && request.resource.data.sid.size() <= 64
+        && request.resource.data.email == request.auth.token.email.lower();
+      allow list, delete: if false;
+    }
+  }
+}
