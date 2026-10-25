@@ -1,12 +1,13 @@
 import { $, el } from "../dom";
 import { state } from "../state";
-import { renderQ } from "./render";
+import { renderStem } from "./render";
 import { show } from "./nav";
 
 interface ExamQuestion {
   q: string;
   o: string[];
   a: number;
+  pics?: { ctx: string; img: string }[];
 }
 interface Exam {
   qs: ExamQuestion[];
@@ -50,8 +51,13 @@ export function startMock() {
         keep.push(o.trim());
       }
     });
-    if (q.q.trim() && keep.length >= 2)
-      list.push({ q: q.q.trim(), o: keep, a: q.a >= 0 && map[q.a] !== undefined ? map[q.a] : -1 });
+    if ((q.q.trim() || q.pics) && keep.length >= 2)
+      list.push({
+        q: q.q.trim(),
+        o: keep,
+        a: q.a >= 0 && map[q.a] !== undefined ? map[q.a] : -1,
+        pics: q.pics,
+      });
   });
   if (!list.length) {
     $("startMsg").className = "mu bad";
@@ -93,7 +99,7 @@ function drawExam() {
   const q = ex.qs[ex.cur];
   ex.seen[ex.cur] = true;
   $("ecount").textContent = "Question " + (ex.cur + 1) + " of " + ex.qs.length;
-  renderQ($("eq"), q.q);
+  renderStem($("eq"), q);
   const box = $("eo");
   box.textContent = "";
   q.o.forEach((t, i) => {
@@ -118,7 +124,9 @@ function drawExam() {
   ex.qs.forEach((_, i) => {
     pal.append(
       el("button", {
-        class: (ex.mark[i] ? "m " : ex.ans[i] >= 0 ? "a " : ex.seen[i] ? "v " : "") + (i === ex.cur ? "c" : ""),
+        class:
+          (ex.mark[i] ? "m " : ex.ans[i] >= 0 ? "a " : ex.seen[i] ? "v " : "") +
+          (i === ex.cur ? "c" : ""),
         text: i + 1,
         "aria-label": "Question " + (i + 1),
         onclick: () => {
@@ -130,7 +138,8 @@ function drawExam() {
   });
 }
 
-const fmt = (x: number) => (Number.isInteger(x) ? String(x) : x.toFixed(2).replace(/0+$/, "").replace(/\.$/, ""));
+const fmt = (x: number) =>
+  Number.isInteger(x) ? String(x) : x.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 
 function finish() {
   if (!E || E.done) return;
@@ -162,16 +171,33 @@ function finish() {
       el("p", {
         class: "mu",
         text:
-          "Correct " + ok + " · Wrong " + bad + " · Skipped " + skip + (unscored ? " · No key for " + unscored : "") + ". " +
-          fmt(ex.marks) + " per correct, " + (ex.neg ? "minus " + fmt(ex.neg) + " per wrong." : "no negative marking.") +
+          "Correct " +
+          ok +
+          " · Wrong " +
+          bad +
+          " · Skipped " +
+          skip +
+          (unscored ? " · No key for " + unscored : "") +
+          ". " +
+          fmt(ex.marks) +
+          " per correct, " +
+          (ex.neg ? "minus " + fmt(ex.neg) + " per wrong." : "no negative marking.") +
           (ex.skipped
-            ? " " + ex.skipped + " question" + (ex.skipped > 1 ? "s were" : " was") + " left out because it had no text or fewer than two options."
+            ? " " +
+              ex.skipped +
+              " question" +
+              (ex.skipped > 1 ? "s were" : " was") +
+              " left out because it had no text or fewer than two options."
             : ""),
       }),
       scorable < ex.qs.length
         ? el("p", {
             class: "warn",
-            text: unkeyed + " question" + (unkeyed > 1 ? "s have" : " has") + " no correct answer set, so they are not scored. Set them in the editor.",
+            text:
+              unkeyed +
+              " question" +
+              (unkeyed > 1 ? "s have" : " has") +
+              " no correct answer set, so they are not scored. Set them in the editor.",
           })
         : null,
       el(
@@ -185,9 +211,10 @@ function finish() {
     el("h2", { text: "Review" }),
   );
   ex.qs.forEach((q, i) => {
-    const state_ = ex.ans[i] < 0 ? "Skipped" : q.a < 0 ? "No key" : ex.ans[i] === q.a ? "Correct" : "Wrong";
+    const state_ =
+      ex.ans[i] < 0 ? "Skipped" : q.a < 0 ? "No key" : ex.ans[i] === q.a ? "Correct" : "Wrong";
     const stem = el("div", { class: "q" });
-    renderQ(stem, q.q);
+    renderStem(stem, q);
     const card = el(
       "div",
       { class: "qc" },
@@ -202,7 +229,13 @@ function finish() {
     q.o.forEach((t, j) => {
       const cl = j === q.a ? "ok" : j === ex.ans[i] && q.a >= 0 ? "no" : "";
       const note =
-        j === q.a && j === ex.ans[i] ? "Your answer · correct" : j === q.a ? "Correct answer" : j === ex.ans[i] ? "Your answer" : "";
+        j === q.a && j === ex.ans[i]
+          ? "Your answer · correct"
+          : j === q.a
+            ? "Correct answer"
+            : j === ex.ans[i]
+              ? "Your answer"
+              : "";
       card.append(
         el(
           "div",
@@ -245,10 +278,22 @@ export function initExam() {
   $("esub").onclick = () => {
     if (!E) return;
     const n = E.ans.filter((a) => a < 0).length;
-    ask(n ? n + " question" + (n > 1 ? "s are" : " is") + " unanswered. Submit now?" : "Submit your exam?", "Submit", finish);
+    ask(
+      n
+        ? n + " question" + (n > 1 ? "s are" : " is") + " unanswered. Submit now?"
+        : "Submit your exam?",
+      "Submit",
+      finish,
+    );
   };
   document.addEventListener("keydown", (e) => {
-    if (!E || $("exambar").hidden || !$("modal").hidden || /^(TEXTAREA|INPUT)$/.test((e.target as HTMLElement).tagName)) return;
+    if (
+      !E ||
+      $("exambar").hidden ||
+      !$("modal").hidden ||
+      /^(TEXTAREA|INPUT)$/.test((e.target as HTMLElement).tagName)
+    )
+      return;
     const q = E.qs[E.cur];
     if (/^[1-9]$/.test(e.key) && +e.key <= q.o.length) {
       E.ans[E.cur] = +e.key - 1;

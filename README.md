@@ -6,6 +6,8 @@ Turn a messy question paper PDF into a clean, editable mock exam. Everything run
 2. **Clean & check**: headers, footers and page numbers are removed, text is split into numbered questions with options, and "Match LIST-I with LIST-II" tables are rebuilt. Every question is editable, and you can apply or change the answer key.
 3. **Mock exam**: timed exam with a question palette, mark-for-review, negative marking and a full result review.
 
+**NTA question papers** (the ones with `Question Number : 1 Question Id : …` labels) keep each question as a picture. These are detected automatically: each question is cropped out of the PDF and shown as an image, with the answer key (including NTA's 4-column table, `1 | 1 | 26 | 4`) applied by question number. Tick "Remove Hindi text and keep the English" to keep only the English printing of a bilingual paper.
+
 Scanned PDFs have no text layer and are not supported (no OCR). Paste the text instead.
 
 ## Tech stack

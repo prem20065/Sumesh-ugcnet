@@ -6,6 +6,8 @@ export interface Question {
   o: string[];
   /** Index of the correct option, or -1 when not set. */
   a: number;
+  /** For papers whose questions are pictures: the question and its options as images. */
+  pics?: { ctx: string; img: string }[];
 }
 
 export const state = {

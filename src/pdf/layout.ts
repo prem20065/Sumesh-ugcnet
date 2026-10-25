@@ -64,7 +64,10 @@ const TSTOP =
 
 /** When a cell wraps or is centred, its text sits on different lines from its neighbour. Use the
     x position of every piece of text to put each cell back in its own row. */
-export function matchTables(lines: Line[]): { rows: Record<number, string[]>; skip: Record<number, boolean> } {
+export function matchTables(lines: Line[]): {
+  rows: Record<number, string[]>;
+  skip: Record<number, boolean>;
+} {
   const rep: { rows: Record<number, string[]>; skip: Record<number, boolean> } = {
     rows: {},
     skip: {},
@@ -129,7 +132,8 @@ export function matchTables(lines: Line[]): { rows: Record<number, string[]>; sk
     for (let li = a; li <= b; li++) {
       const parts: Item[][] = [[], []];
       lines[li].items.forEach((it) => parts[colOf(it.x, st)].push(it));
-      for (let k = 0; k < 2; k++) if (parts[k].length) cols[k].push(joinItems(parts[k], lines[li].h));
+      for (let k = 0; k < 2; k++)
+        if (parts[k].length) cols[k].push(joinItems(parts[k], lines[li].h));
     }
     const cells: { label: string; text: string }[][] = [[], []];
     const pre: string[][] = [[], []];
@@ -165,8 +169,8 @@ export function matchTables(lines: Line[]): { rows: Record<number, string[]>; sk
   return rep;
 }
 
-/** Group one page's text pieces into lines (top to bottom, left to right) and return their text. */
-export function pageToLines(items: Item[]): string[] {
+/** Group text pieces into lines, top to bottom, each line sorted left to right. */
+export function groupLines(items: Item[]): Line[] {
   const sorted = items.slice().sort((a, b) => b.y - a.y);
   const lines: Line[] = [];
   let cur: Line | null = null;
@@ -178,6 +182,12 @@ export function pageToLines(items: Item[]): string[] {
     }
   });
   lines.forEach((L) => L.items.sort((a, b) => a.x - b.x));
+  return lines;
+}
+
+/** Group one page's text pieces into lines (top to bottom, left to right) and return their text. */
+export function pageToLines(items: Item[]): string[] {
+  const lines = groupLines(items);
   const rep = matchTables(lines);
   const out: string[] = [];
   lines.forEach((L, li) => {

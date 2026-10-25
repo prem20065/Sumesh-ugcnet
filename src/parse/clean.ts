@@ -13,10 +13,13 @@ export function prepLines(text: string, noHindi: boolean): string[] {
     .map((l) => {
       l = l.replace(SHY, "").replace(LIG_FI, "fi").replace(LIG_FL, "fl").replace(NBSP, " ");
       if (noHindi) l = l.replace(HINDI, " ");
-      l = l.replace(/Question\s*ID\s*[:-]?\s*\d+/gi, "").replace(/Option\s*[1-4]\s*ID\s*[:-]?\s*\d+/gi, "");
+      l = l
+        .replace(/Question\s*ID\s*[:-]?\s*\d+/gi, "")
+        .replace(/Option\s*[1-4]\s*ID\s*[:-]?\s*\d+/gi, "");
       l = l.replace(/\s+/g, " ").trim();
       /* option lines are not table rows; only real table rows keep their | separators */
-      if (/\(\s*[1-4A-Da-d]\s*\)/.test(l) || /^\|\s|\s\|$/.test(l)) l = l.replace(/\s*\|\s*/g, " ").trim();
+      if (/\(\s*[1-4A-Da-d]\s*\)/.test(l) || /^\|\s|\s\|$/.test(l))
+        l = l.replace(/\s*\|\s*/g, " ").trim();
       return l;
     })
     .filter(Boolean);
@@ -24,7 +27,8 @@ export function prepLines(text: string, noHindi: boolean): string[] {
 
 /* ---------- splitting into questions ---------- */
 /* "Question number 1", "Question No. 1:", "Ques 1", "Q.1" (label, punctuation optional) or a bare "1." / "1)" */
-const QLAB = /^(?:Question|Ques|Que|Qn|Q)\s*(?:number|no|num|#)?\s*[.:-]?\s*(\d{1,3})(?!\d)\s*[.):-]?\s*(.*)$/i;
+const QLAB =
+  /^(?:Question|Ques|Que|Qn|Q)\s*(?:number|no|num|#)?\s*[.:-]?\s*(\d{1,3})(?!\d)\s*[.):-]?\s*(.*)$/i;
 const QBARE = /^(\d{1,3})\s*[.):]\s*(.*)$/;
 const qStart = (l: string) => QLAB.exec(l) || QBARE.exec(l);
 const OPT2 = /\(\s*[2-4B-Db-d]\s*\)|^(?:[B-Db-d]\s*[).]|[2-4]\s*\))\s/;

@@ -26,6 +26,21 @@ function tableEl(rows: string[][]): HTMLElement {
   return el("div", { class: "tw" }, t);
 }
 
+const pic = (src: string) => el("img", { class: "qimg", src, alt: "Question image" });
+
+/** Text question, or the question's pictures, into `box`. */
+export function renderStem(
+  box: HTMLElement,
+  q: { q: string; pics?: { ctx: string; img: string }[] },
+) {
+  if (q.q.trim()) renderQ(box, q.q);
+  else box.textContent = "";
+  (q.pics || []).forEach((p) => {
+    if (p.ctx) box.append(pic(p.ctx));
+    box.append(pic(p.img));
+  });
+}
+
 export function renderQ(box: HTMLElement, text: string) {
   box.textContent = "";
   const lines = String(text).split("\n");

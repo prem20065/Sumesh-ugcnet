@@ -33,7 +33,10 @@ describe("cleanPaper", () => {
     expect(qs[2].o).toEqual(["50 C", "100 C", "150 C", "200 C"]);
   });
   it("accepts 'Question number N' labels", () => {
-    const r = cleanPaper("Question number 1\nPick one\n(1) a (2) b\nQuestion number 2\nAgain\n(1) c (2) d", false);
+    const r = cleanPaper(
+      "Question number 1\nPick one\n(1) a (2) b\nQuestion number 2\nAgain\n(1) c (2) d",
+      false,
+    );
     expect(r.map((q) => q.n)).toEqual([1, 2]);
   });
   it("strips Hindi text when asked", () => {
@@ -47,7 +50,9 @@ describe("splitOptions / reflow", () => {
     expect(splitOptions("Just a heading")).toEqual({ q: "Just a heading", o: [] });
   });
   it("re-joins wrapped lines and hyphenated words", () => {
-    expect(reflow("The quick brown\nfox jumps over the lazy-\ndog")).toBe("The quick brown fox jumps over the lazydog");
+    expect(reflow("The quick brown\nfox jumps over the lazy-\ndog")).toBe(
+      "The quick brown fox jumps over the lazydog",
+    );
   });
   it("keeps list items on their own lines", () => {
     expect(reflow("Statement I: a\nStatement II: b")).toBe("Statement I: a\nStatement II: b");
@@ -78,16 +83,32 @@ describe("pdf layout", () => {
     expect(colKind(["A", "C"])).toBe("");
   });
   it("orders text top to bottom", () => {
-    expect(pageToLines([item("second", 0, 80), item("first", 0, 120)])).toEqual(["first", "second"]);
+    expect(pageToLines([item("second", 0, 80), item("first", 0, 120)])).toEqual([
+      "first",
+      "second",
+    ]);
   });
   it("removes repeated headers and page numbers", () => {
-    const page = (n: number) => ["Exam Paper 2024", `${n}. Question text`, "(1) a (2) b", `Page ${n}`];
+    const page = (n: number) => [
+      "Exam Paper 2024",
+      `${n}. Question text`,
+      "(1) a (2) b",
+      `Page ${n}`,
+    ];
     const text = buildText([page(1), page(2), page(3)], true);
     expect(text).not.toMatch(/Exam Paper/);
     expect(text).not.toMatch(/Page \d/);
     expect(text).toMatch(/2\. Question text/);
   });
   it("keeps everything when stripping is off", () => {
-    expect(buildText([["Header", "x"], ["Header", "y"]], false)).toContain("Header");
+    expect(
+      buildText(
+        [
+          ["Header", "x"],
+          ["Header", "y"],
+        ],
+        false,
+      ),
+    ).toContain("Header");
   });
 });

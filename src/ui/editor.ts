@@ -2,7 +2,7 @@ import { $, el, fit } from "../dom";
 import { state, nextId, type Question } from "../state";
 import { applyKey, parseKey } from "../parse/key";
 import { prepLines } from "../parse/clean";
-import { renderQ } from "./render";
+import { renderStem } from "./render";
 
 const STORE_KEY = "pc.v1";
 
@@ -30,6 +30,7 @@ export function loadSaved(): Question[] | null {
 
 function issues(q: Question): string[] {
   const r: string[] = [];
+  if (q.pics) return q.a < 0 ? ["No correct answer set"] : r;
   const filled = q.o.filter((o) => o.trim()).length;
   if (!q.q.trim()) r.push("No question text");
   if (q.o.length < 2 || filled < 2) r.push("Needs at least two options");
@@ -54,7 +55,9 @@ function summary() {
     el("span", { class: "chip" + (flag ? " w" : "") }, el("b", { text: flag }), " need attention"),
   );
   if (state.dropped)
-    c.append(el("span", { class: "chip" }, el("b", { text: state.dropped }), " dropped, no options"));
+    c.append(
+      el("span", { class: "chip" }, el("b", { text: state.dropped }), " dropped, no options"),
+    );
 }
 
 function badge(card: HTMLElement, q: Question) {
@@ -67,7 +70,11 @@ function badge(card: HTMLElement, q: Question) {
 }
 
 function ta(value: string, cls: string, fn: (v: string) => void) {
-  const t = el("textarea", { class: "ta " + cls, rows: 1, spellcheck: "false" }) as HTMLTextAreaElement;
+  const t = el("textarea", {
+    class: "ta " + cls,
+    rows: 1,
+    spellcheck: "false",
+  }) as HTMLTextAreaElement;
   t.value = value;
   t.addEventListener("input", () => {
     fit(t);
@@ -89,7 +96,7 @@ function buildCard(q: Question, idx: number): HTMLElement {
     el(
       "div",
       { class: "row" },
-      idx > 0
+      idx > 0 && !q.pics
         ? el("button", {
             class: "btn sm",
             title: "Add this question's text to the one above and remove it",
@@ -117,6 +124,31 @@ function buildCard(q: Question, idx: number): HTMLElement {
     ),
   );
   c.append(head);
+  if (q.pics) {
+    const stem = el("div", { class: "pics" });
+    renderStem(stem, q);
+    c.append(stem);
+    const pick = el("div", {
+      class: "row pick",
+      role: "radiogroup",
+      "aria-label": "Correct option",
+    });
+    pick.append(el("span", { class: "mu", text: "Correct option:" }));
+    q.o.forEach((_, i) => {
+      const radio = el("input", { type: "radio", name: "a" + q.id }) as HTMLInputElement;
+      radio.checked = q.a === i;
+      radio.addEventListener("change", () => {
+        q.a = i;
+        badge(c, q);
+        summary();
+        persist();
+      });
+      pick.append(el("label", { class: "chk" }, radio, "(" + (i + 1) + ")"));
+    });
+    c.append(pick);
+    badge(c, q);
+    return c;
+  }
   c.append(el("label", { class: "mu", for: "q" + q.id, text: "Question" }));
   const qt = ta(q.q, "qq", (v) => {
     q.q = v;
@@ -204,7 +236,10 @@ export function renderEditor(keepScroll?: boolean) {
   });
   if (!shown)
     list.append(
-      el("p", { class: "mu", text: only ? "Nothing needs attention." : "No questions yet. Add one below." }),
+      el("p", {
+        class: "mu",
+        text: only ? "Nothing needs attention." : "No questions yet. Add one below.",
+      }),
     );
   summary();
   $("t2").disabled = !state.QS.length;
@@ -237,10 +272,11 @@ function optLabel(j: number, style: string) {
 export function cleanText(withAns: boolean): string {
   const st = $("ostyle").value;
   return state.QS.map((q, i) => {
-    let s = i + 1 + ". " + q.q + "\n";
-    q.o.forEach((o, j) => {
-      s += optLabel(j, st) + " " + o + "\n";
-    });
+    let s = i + 1 + ". " + (q.pics ? "[question is a picture]" : q.q) + "\n";
+    if (!q.pics)
+      q.o.forEach((o, j) => {
+        s += optLabel(j, st) + " " + o + "\n";
+      });
     if (withAns && q.a >= 0) s += "Answer: " + optLabel(q.a, st) + "\n";
     return s;
   }).join("\n");
@@ -257,22 +293,32 @@ function renderClean() {
   }
   state.QS.forEach((q, i) => {
     const stem = el("div", { class: "cqx" });
-    renderQ(stem, q.q);
+    renderStem(stem, q);
     const d = el(
       "div",
       { class: "cq" },
       el("div", { class: "cqt" }, el("span", { class: "cqn", text: i + 1 + "." }), stem),
     );
-    q.o.forEach((o, j) => {
+    if (q.pics && showAns && q.a >= 0)
       d.append(
         el(
           "div",
-          { class: "cqo" + (showAns && q.a === j ? " ok" : "") },
-          el("span", { class: "cql", text: optLabel(j, st) }),
-          el("span", { text: o }),
+          { class: "cqo ok" },
+          el("span", { class: "cql", text: "Answer" }),
+          el("span", { text: optLabel(q.a, st) }),
         ),
       );
-    });
+    if (!q.pics)
+      q.o.forEach((o, j) => {
+        d.append(
+          el(
+            "div",
+            { class: "cqo" + (showAns && q.a === j ? " ok" : "") },
+            el("span", { class: "cql", text: optLabel(j, st) }),
+            el("span", { text: o }),
+          ),
+        );
+      });
     box.append(d);
   });
 }
@@ -296,7 +342,8 @@ export function initEditor() {
     clearTimeout(fitT);
     fitT = window.setTimeout(fitAll, 120);
   });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(fitAll, 50));
+  if (document.fonts && document.fonts.ready)
+    document.fonts.ready.then(() => setTimeout(fitAll, 50));
 
   $("onlyFlag").onchange = () => renderEditor();
   $("addQ").onclick = () => {
@@ -319,7 +366,7 @@ export function initEditor() {
     requestAnimationFrame(fitAll);
   };
   $("keyApply").onclick = () => {
-    const key = parseKey(prepLines($("ktxt2").value, false).join(" "));
+    const key = parseKey(prepLines($("ktxt2").value, false).join("\n"));
     const n = applyKey(state.QS, key);
     const total = Object.keys(key).length;
     $("keyMsg").className = "status " + (n ? "good" : "bad");

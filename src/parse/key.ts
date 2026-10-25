@@ -1,7 +1,25 @@
 import type { Question } from "../state";
 
+const ROW = /^\s*\d{1,3}(?:\s*\|\s*\d{1,3})+\s*$/;
+
+/** NTA key tables: rows like "1 | 1 | 26 | 4" are pairs of (question number | answer). */
+function parseKeyTable(text: string): Record<number, number> | null {
+  const rows = text.split(/\r?\n/).filter((l) => ROW.test(l));
+  if (rows.length < 2) return null;
+  const k: Record<number, number> = {};
+  rows.forEach((r) => {
+    const c = r.split("|").map((x) => +x.trim());
+    if (c.length % 2) return;
+    for (let i = 0; i < c.length; i += 2)
+      if (c[i + 1] >= 1 && c[i + 1] <= 5) k[c[i]] = c[i + 1] - 1;
+  });
+  return Object.keys(k).length ? k : null;
+}
+
 /** Parse an answer key such as "1. B", "2-(3)", "3 C" into { questionNumber: optionIndex }. */
 export function parseKey(text: string): Record<number, number> {
+  const table = parseKeyTable(text);
+  if (table) return table;
   const t = text
     .replace(/\|/g, " ")
     .replace(/\b(?:ans(?:wer)?s?|key)\b[:.]?/gi, " ")
