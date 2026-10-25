@@ -1,0 +1,56 @@
+/* Design tokens. Light by default, dark follows the system unless data-theme="light" is set. */
+:root {
+  color-scheme: light;
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface2: #f5f7fa;
+  --ink: #17202e;
+  --mute: #566377;
+  --line: #cfd7e3;
+  --accent: #2848c9;
+  --accent-ink: #ffffff;
+  --ok: #16794a;
+  --no: #b3261e;
+  --warn: #965800;
+  --okbg: #e3f3ea;
+  --nobg: #fbe5e3;
+  --warnbg: #fbefd6;
+  --font: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141c;
+    --surface: #171e29;
+    --surface2: #1d2531;
+    --ink: #e7ecf4;
+    --mute: #9aa7bb;
+    --line: #2c3748;
+    --accent: #8ba3ff;
+    --accent-ink: #0b1220;
+    --ok: #5fd39b;
+    --no: #ff8f86;
+    --warn: #f2bf5e;
+    --okbg: #14352a;
+    --nobg: #3a1d1b;
+    --warnbg: #3a2e14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141c;
+  --surface: #171e29;
+  --surface2: #1d2531;
+  --ink: #e7ecf4;
+  --mute: #9aa7bb;
+  --line: #2c3748;
+  --accent: #8ba3ff;
+  --accent-ink: #0b1220;
+  --ok: #5fd39b;
+  --no: #ff8f86;
+  --warn: #f2bf5e;
+  --okbg: #14352a;
+  --nobg: #3a1d1b;
+  --warnbg: #3a2e14;
+  color-scheme: dark;
+}

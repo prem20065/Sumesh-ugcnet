@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Paper Cleaner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+    />
+  </head>
+  <body>
+    <header class="bar" id="bar">
+      <div class="wrap">
+        <div class="brand">Paper Cleaner</div>
+        <nav class="steps" id="steps" aria-label="Steps">
+          <button class="step" id="t1" aria-current="step"><b>1</b>Load paper</button>
+          <button class="step" id="t2" disabled><b>2</b>Clean &amp; check</button>
+          <button class="step" id="t3" disabled><b>3</b>Mock exam</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section id="s1">
+        <h1>Turn a messy question paper into a clean mock exam</h1>
+        <p class="mu">
+          Choose the question paper PDF and, if you have it, the answer key PDF. The page pulls out
+          the text, tidies it into numbered questions with options, and lets you fix anything it got
+          wrong before you start. Your files stay in this browser tab.
+        </p>
+        <div class="grid2">
+          <div class="card">
+            <h2>1. Question paper</h2>
+            <label class="drop" id="dq"
+              ><b>Choose a PDF</b><span class="mu" id="qn">or drop it here</span
+              ><input type="file" id="qf" accept="application/pdf"
+            /></label>
+            <p class="status" id="qs" role="status"></p>
+            <label class="mu" for="qtxt"
+              >Paper text. Fix it here, or paste text instead of using a PDF.</label
+            >
+            <textarea
+              class="paper"
+              id="qtxt"
+              spellcheck="false"
+              placeholder="1. Question text…&#10;(1) option  (2) option  (3) option  (4) option"
+            ></textarea>
+          </div>
+          <div class="card">
+            <h2>2. Answer key <span class="mu">(optional)</span></h2>
+            <label class="drop" id="dk"
+              ><b>Choose a PDF</b><span class="mu" id="kn">or drop it here</span
+              ><input type="file" id="kf" accept="application/pdf"
+            /></label>
+            <p class="status" id="ks" role="status"></p>
+            <label class="mu" for="ktxt"
+              >Key text. Formats like <code>1. B</code>, <code>2-(3)</code>, <code>3 C</code> all
+              work.</label
+            >
+            <textarea
+              class="paper"
+              id="ktxt"
+              spellcheck="false"
+              placeholder="1. B&#10;2. C&#10;3. A"
+            ></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="chk">
+            <input type="checkbox" id="noHF" checked /><label for="noHF"
+              >Remove repeated headers, footers and page numbers</label
+            >
+          </div>
+          <div class="chk">
+            <input type="checkbox" id="onlyOpt" checked /><label for="onlyOpt"
+              >Keep only questions that have options (drop headings, instructions and
+              passages)</label
+            >
+          </div>
+          <div class="chk">
+            <input type="checkbox" id="noHindi" /><label for="noHindi"
+              >Remove Hindi text and keep the English</label
+            >
+          </div>
+          <div class="row" style="margin-top: 10px">
+            <button class="btn p" id="clean" disabled>Clean paper</button>
+            <button class="btn" id="resume" hidden>Resume last paper</button>
+          </div>
+          <p class="mu" style="margin: 10px 0 0">
+            Scanned PDFs (pictures of pages) have no text to read, and this page cannot do OCR. For
+            those, use a text version of the PDF or paste the text above.
+          </p>
+        </div>
+      </section>
+
+      <section id="s2" hidden>
+        <h1>Check the cleaned paper</h1>
+        <p class="mu">
+          Every question is editable. Pick the correct option with the round button. Cards outlined
+          in amber need a look.
+        </p>
+        <div class="chips" id="chips"></div>
+        <div class="row" style="margin-bottom: 8px" role="group" aria-label="View">
+          <button class="btn sm seg" id="vEdit" aria-pressed="true">Edit questions</button>
+          <button class="btn sm seg" id="vClean" aria-pressed="false">Clean view</button>
+        </div>
+        <div class="card" id="cv" hidden>
+          <div class="row sp" style="margin-bottom: 12px">
+            <div class="row" style="gap: 14px">
+              <div class="fld">
+                <label for="ostyle">Option numbering</label>
+                <select id="ostyle">
+                  <option value="(1)">(1) (2) (3) (4)</option>
+                  <option value="1)">1) 2) 3) 4)</option>
+                  <option value="1.">1. 2. 3. 4.</option>
+                  <option value="(A)">(A) (B) (C) (D)</option>
+                  <option value="A)">A) B) C) D)</option>
+                </select>
+              </div>
+              <div class="chk" style="align-self: flex-end">
+                <input type="checkbox" id="cvAns" /><label for="cvAns">Show answers</label>
+              </div>
+            </div>
+          </div>
+          <div id="cvbody" class="cv"></div>
+        </div>
+        <div class="row sp">
+          <div class="chk">
+            <input type="checkbox" id="onlyFlag" /><label for="onlyFlag"
+              >Show only questions that need attention</label
+            >
+          </div>
+          <button class="btn sm" id="keyToggle">Answer key…</button>
+        </div>
+        <div class="card" id="keyBox" hidden>
+          <label class="mu" for="ktxt2"
+            >Paste or change the answer key, then apply it. Existing answers for numbers in the key
+            are replaced.</label
+          >
+          <textarea class="paper" id="ktxt2" spellcheck="false" style="min-height: 90px"></textarea>
+          <div class="row" style="margin-top: 8px">
+            <button class="btn sm" id="keyApply">Apply key</button
+            ><span class="status" id="keyMsg" role="status"></span>
+          </div>
+        </div>
+        <div id="list"></div>
+        <div class="row" style="margin-top: 8px">
+          <button class="btn" id="addQ">Add a question</button>
+        </div>
+        <div class="act">
+          <div class="row sp">
+            <div class="row" style="gap: 14px">
+              <div class="fld">
+                <label for="mins">Minutes</label
+                ><input type="number" id="mins" value="60" min="1" />
+              </div>
+              <div class="fld">
+                <label for="mk">Marks per correct</label
+                ><input type="number" id="mk" value="2" min="0" step="0.25" />
+              </div>
+              <div class="fld">
+                <label for="ng">Minus per wrong</label
+                ><input type="number" id="ng" value="0" min="0" step="0.25" />
+              </div>
+            </div>
+            <div class="row">
+              <button class="btn" id="copy">Copy clean text</button>
+              <button class="btn p" id="start">Start mock exam</button>
+            </div>
+          </div>
+          <p class="mu" id="startMsg" style="margin: 8px 0 0" role="status"></p>
+          <textarea id="out" class="paper" hidden readonly aria-label="Clean paper text"></textarea>
+        </div>
+      </section>
+
+      <section id="exam" hidden></section>
+      <section id="res" hidden></section>
+    </main>
+
+    <div id="exambar" hidden>
+      <div class="etop">
+        <div class="wrap">
+          <div><div class="mu" id="ecount"></div></div>
+          <div class="time" id="etime" role="timer">00:00</div>
+          <button class="btn p" id="esub">Submit</button>
+        </div>
+      </div>
+      <div class="wrap">
+        <div class="card">
+          <div class="q" id="eq"></div>
+          <div id="eo"></div>
+          <div class="row" style="margin-top: 12px">
+            <button class="btn" id="ep">Previous</button>
+            <button class="btn p" id="en">Save &amp; next</button>
+            <button class="btn" id="em">Mark for review</button>
+            <button class="btn" id="ec">Clear answer</button>
+          </div>
+          <p class="hint">Keys: 1–4 pick an option, ← → move between questions.</p>
+        </div>
+        <div class="card">
+          <h2>Questions</h2>
+          <div class="pal" id="epal"></div>
+          <p class="mu" style="margin: 10px 0 0">
+            Green: answered. Amber: marked for review. Dashed: seen, not answered. Outlined:
+            current.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mtext">
+      <div class="card">
+        <p id="mtext"></p>
+        <div class="row" style="justify-content: flex-end">
+          <button class="btn" id="mno">Keep working</button>
+          <button class="btn p" id="myes">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
